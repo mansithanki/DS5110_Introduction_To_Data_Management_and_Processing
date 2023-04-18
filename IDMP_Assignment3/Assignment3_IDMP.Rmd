@@ -1,0 +1,371 @@
+---
+title: "Assignment3_IDMP"
+author: "Mansi Pravin Thanki"
+date: '2023-02-26'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+```
+
+```{r}
+library(tidyverse)
+library(readr)
+library(dplyr)
+```
+
+
+**Part A**
+
+Problems 1–3 use data from the US Department of Education’s Civil Rights Data Collection. It was downloaded from the zipped 2017-2018 data available at https://www2.ed.gov/about/offices/list/ocr/docs/crdc-2017-18.html. The Public Use Data File User’s Manual and a spreadsheet describing the file structure are included in the zipped files, or can be downloaded at the same location. Use these as a reference to help you understand the dataset. The CRDC data is supplemented by statistical data from EDFacts (not included). We will use only the CRDC data. Import all CRDC reserve codes as missing values.
+
+# Loading dataset. Imported all CRDC reserve codes as missing values.
+```{r}
+enrollment_dataset <- read_csv("/Users/mansipravinthanki/Downloads/2017-18-crdc-data-corrected-publication 2/2017-18 Public-Use Files/Data/SCH/CRDC/CSV/Enrollment.csv", na = c('-3','-5','-6','-8','-9','-11' ))
+as.tibble(enrollment_dataset)
+```
+
+**Problem 1**
+
+We would like to know the distribution of students by race and gender across all schools. Calculate and visualize the overall proportions of enrolled students of every race and gender combination out of the total number of students across all schools. Describe the distribution.
+
+# Calculate the total number of students across all schools
+```{r}
+total_males <- enrollment_dataset$TOT_ENR_M[!is.na(enrollment_dataset$TOT_ENR_M)]
+total_females <- enrollment_dataset$TOT_ENR_F[!is.na(enrollment_dataset$TOT_ENR_F)]
+total_students <- sum(total_males, total_females)
+paste("The total number of enrolled students across all schools are", total_students)
+```
+
+
+# Tidying the data to help generate the visualization
+# get all the SCH_ENR_RACE_GENDER columns
+```{r}
+# first  get all the columns that start with "SCH_ENR_"
+untidy_columns_df <- enrollment_dataset %>% select(all_of(starts_with("SCH_ENR_")))
+
+# get the column names from the untidy_columns_df dataframe
+racegender_columnNames <- sort(colnames(untidy_columns_df))
+racegender_columnNames
+```
+
+# using tidying techniques pivot_longer, str_sub and filter to get Race, Gender 
+# and Count columns
+```{r}
+# using pivot_longer
+enr_race_dataset <-pivot_longer(enrollment_dataset, cols=racegender_columnNames, names_to = "Race",
+                           values_to = "Count")
+
+# using str_sub to extract Race from "SCH_ENR_Race_Gender"
+enr_race_dataset$Gender <- str_sub(enr_race_dataset$Race, start = -1, end = -1)
+
+# filtering out the columns that do not include race
+enr_race_dataset <- filter(enr_race_dataset, !Race %in% c("SCH_ENR_504_F", 
+                                                          "SCH_ENR_504_M", 
+                                                          "SCH_ENR_IDEA_F", 
+                                                          "SCH_ENR_IDEA_M", 
+                                                          "SCH_ENR_LEP_F", 
+                                                          "SCH_ENR_LEP_M"))
+
+# using str_sub to extract Gender from "SCH_ENR_Race_Gender" and 
+# create a Gender column from it
+enr_race_dataset$Race <- str_sub(enr_race_dataset$Race, start = -4, end = -3)
+
+# selecting the columns out of tidied dataset
+enr_race_dataset <- select(enr_race_dataset, SCHID, SCH_NAME, COMBOKEY, Race, Gender, Count, TOT_ENR_M, TOT_ENR_F)
+
+as.tibble(enr_race_dataset)
+```
+
+## Grouping by each race and gender and calculating the proportion out 
+## of all enrolled students
+```{r}
+race_gender_prop_dataset <- enr_race_dataset %>%
+	group_by(Race, Gender) %>%
+	summarise(Race_count = sum(Count[!is.na(Count)]))
+race_gender_prop_dataset$Proportion <- race_gender_prop_dataset$Race_count/total_students
+as.tibble(race_gender_prop_dataset)
+```
+
+# if we sum up all the proportions, it sums up to 1
+```{r}
+sum(race_gender_prop_dataset$Proportion)
+```
+
+# Visualizing the graph
+```{r}
+library(ggplot2)
+ggplot(race_gender_prop_dataset, aes(x = Race, y = Proportion, fill = Gender)) +
+  geom_bar(position="dodge",stat = "identity") +
+  labs(x = "Race", y = "Proportion", fill = "Gender") +
+  ggtitle("Proportions of enrolled students of every race & gender combination out of total
+No. of students ") +
+theme_bw()
+```
+**Observations:**
+
+1. Out of all enrolled students across all schools, the students from **White (WH) race** constitute the **maximum proportion for both male and female** genders
+
+2. The **'Native Hawaiian or Other Pacific Islander'(HP)** race students constitute the **lowest proportion for both male and female** genders.
+
+3. Male Vs Female comparison for the races:
+
+- **Male** student population is significantly **higher** for the races: **White, Hispanic and Black**. 
+
+- **Male** student population is very **slightly higher** for the **Asian (AS) and Two or More raced (TR)**. 
+
+- There is equal distribution for male and female students for the races **Native American (AM) and 'Native Hawaiian or Other Pacific Islander'(HP)**
+
+#Q2
+
+We would like to know the distribution of Advanced Placement (AP) students (i.e., students enrolled in at least one AP course) by race and gender across all schools. Filter the data to include only schools with AP programs. Calculate and visualize the overall proportions of AP students of every race and gender combination out of the total number of AP students across all schools. Describe the distribution. How does it compare to the distribution from Problem 1?
+
+# Loading dataset. Imported all CRDC reserve codes as missing values.
+```{r}
+ap_dataset <- read_csv("/Users/mansipravinthanki/Downloads/2017-18-crdc-data-corrected-publication 2/2017-18 Public-Use Files/Data/SCH/CRDC/CSV/Advanced Placement.csv", na = c('-3','-5','-6','-8','-9','-11' ))
+as.tibble(ap_dataset)
+```
+
+# filtering out the schools having AP Programs by using SCH_APENR_IND as an indicator whether school has AP program or not
+```{r}
+ap_dataset <- filter(ap_dataset, SCH_APENR_IND == "Yes")
+as.tibble(ap_dataset)
+```
+
+# Calculating the total number of AP students across all schools 
+```{r}
+total_apmales <- ap_dataset$TOT_APENR_M[!is.na(ap_dataset$TOT_APENR_M)]
+total_apfemales <- ap_dataset$TOT_APENR_F[!is.na(ap_dataset$TOT_APENR_F)]
+total_apstudents <- sum(total_apmales, total_apfemales)
+paste("The total number of enrolled AP students across all schools are", total_apstudents)
+```
+
+# Tidying the data to help generate the visualization
+# get all the SCH_ENR_RACE_GENDER columns
+
+```{r}
+# first  get all the columns that start with "SCH_APENR_"
+untidy_ap_columns_df <- ap_dataset %>% select(all_of(starts_with("SCH_APENR_")))
+
+# get the column names from the untidy_ap_columns_df dataframe
+ap_racegender_columnNames <- sort(colnames(untidy_ap_columns_df))
+ap_racegender_columnNames <- ap_racegender_columnNames[!ap_racegender_columnNames %in% c("SCH_APENR_IND")]
+ap_racegender_columnNames
+```
+
+# using tidying techniques pivot_longer, str_sub and filter to get Race, Gender 
+# and Count columns
+
+```{r}
+ap_enr_race_dataset <-pivot_longer(ap_dataset, cols=ap_racegender_columnNames, names_to = "Race",
+                           values_to = "APCount")
+
+# using str_sub to extract year from "SCH_APENR_Race_Gender"
+ap_enr_race_dataset$Gender <- str_sub(ap_enr_race_dataset$Race, start = -1, end = -1)
+
+ap_enr_race_dataset <- filter(ap_enr_race_dataset, !Race %in% c("SCH_APENR_504_F", "SCH_APENR_504_M", "SCH_APENR_IDEA_F", "SCH_APENR_IDEA_M", "SCH_APENR_LEP_F", "SCH_APENR_LEP_M"))
+
+ap_enr_race_dataset$Race <- str_sub(ap_enr_race_dataset$Race, start = -4, end = -3)
+
+# selecting the columns out of tidied dataset
+ap_enr_race_dataset <- select(ap_enr_race_dataset, SCHID, SCH_NAME,COMBOKEY, Race, Gender, APCount, TOT_APENR_M, TOT_APENR_F)
+ap_enr_race_dataset
+
+as.tibble(ap_enr_race_dataset)
+```
+
+```{r}
+apr_enr_dataset <- ap_enr_race_dataset %>%
+	group_by(Race,Gender) %>%
+	summarise(Race_count = sum(APCount[!is.na(APCount)]))
+```
+
+```{r}
+apr_enr_dataset$Proportion <- ((apr_enr_dataset$Race_count) * 1.0)/total_apstudents
+as.tibble(apr_enr_dataset)
+
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(apr_enr_dataset, aes(x = Race, y = Proportion, fill = Gender)) +
+  geom_bar(position="dodge",stat = "identity") +
+  labs(x = "Race", y = "Proportion", fill = "Gender") +
+  ggtitle("Proportions of enrolled students of every race & gender combination out of total
+No. of students in AP Program ") +
+  theme_bw()
+```
+**Observations:**
+
+1. The number of female students in AP program is significantly more across all the Races.
+
+2. There are predominantly more male and female students that belong to **White (WH)** race.
+
+3. The least number of male and female students belong to **'Native Hawaiian or Other Pacific Islander'(HP)**
+
+4. When compared to the distribution in Q1, you can see that in **Q1 the male dominance was higher** across all races, whereas there are **higher percentage of females across all races in Q2**.
+
+5. The distribution across the races have differences: **Asian and Black population** is more in AP programs
+
+
+#Q3
+
+```{r}
+enr_race_dataset$Total_ENR_School <- enr_race_dataset$TOT_ENR_M + enr_race_dataset$TOT_ENR_F
+as.tibble(enr_race_dataset)
+```
+
+```{r}
+## Sum
+enr_race_dataset <- filter(enr_race_dataset, Race !="WH")
+enrolled_df <- enr_race_dataset %>%
+	group_by(COMBOKEY) %>%
+	summarise(NonWhite_Race_count = sum(Count[!is.na(Count)]),
+            TotalEnrollment = sum(Total_ENR_School[1]))
+  
+```
+
+```{r}
+enrolled_df$ENRProportion <- enrolled_df$NonWhite_Race_count/enrolled_df$TotalEnrollment
+as.tibble(enrolled_df)
+```
+
+
+```{r}
+ap_enr_race_dataset$Total_AP_ENR_School <- ap_enr_race_dataset$TOT_APENR_M + ap_enr_race_dataset$TOT_APENR_F
+as.tibble(ap_enr_race_dataset)
+```
+
+
+```{r}
+## Sum
+ap_enr_race_dataset <- filter(ap_enr_race_dataset, Race !="WH")
+ap_enrolled_df <- ap_enr_race_dataset %>%
+	group_by(COMBOKEY) %>%
+	summarise(NonWhite_APRace_count = sum(APCount[!is.na(APCount)]),
+            APTotalEnrollment = sum(Total_AP_ENR_School[1]))
+  
+```
+
+```{r}
+ap_enrolled_df$APProportion <- ap_enrolled_df$NonWhite_APRace_count/ap_enrolled_df$APTotalEnrollment
+as.tibble(ap_enrolled_df)
+```
+
+```{r}
+enr_apenr_joined_dataset <- enrolled_df %>%
+  inner_join(ap_enrolled_df, by=c("COMBOKEY"="COMBOKEY"))
+as.tibble(enr_apenr_joined_dataset)
+```
+
+```{r}
+# Create a scatter plot with a smooth line and a reference line with slope 1
+ggplot(enr_apenr_joined_dataset, aes(x = ENRProportion, y = APProportion)) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline(slope = 1, linetype = "dashed", color="red") +
+  labs(x = "Proportion of students of color (in all enrolled students)",
+       y = "Proportion of students of color in at least one AP class")
+```
+**Observations:**
+
+1. To answer the question:  Are students of color typically underrepresented in AP classes?
+
+- **Yes**, since a large number of points lie below the reference line (the intercept), it means that the students of color are typically underrepresented in AP classes.
+
+- There is a positive correlation relationship between the proportion of student of colors (in all schools) to the proportion of non-white students in atleast one AP class
+
+
+```{r}
+
+library(RSQLite)
+
+# connect to the SQLite database
+dbConnection <- dbConnect(RSQLite::SQLite(), dbname = "/Users/mansipravinthanki/Downloads/DBLP-CSR-sqlite/dblp.db")
+
+```
+
+#Q4
+Filter the data to include only the authors for whom a gender was predicted as ‘male’ or ‘female’ with a probability of 0.90 or greater, and then visualize the total number of distinct male and female authors published each year. Comment on the visualization.
+
+
+
+
+```{r}
+query <- "
+SELECT year, gender, COUNT(DISTINCT name) AS count
+FROM authors
+JOIN general ON authors.k = general.k
+WHERE gender IN ('M', 'F')
+AND prob >= 0.9 
+GROUP BY year, gender
+"
+
+# execute the query and store the results in a data frame
+results <- dbGetQuery(dbConnection, query)
+as.tibble(results)
+```
+```{r}
+# load the ggplot2 library for visualization
+library(ggplot2)
+
+ggplot(results, aes(x =year, y = count, fill = gender)) +
+  geom_bar(position="dodge",stat = "identity") +
+  labs(x = "Year", y = "Number of Authors", fill = "Gender") +
+  ggtitle("Male and Female Authors Published Each Year") +
+  theme_bw()
+```
+**Observations:**
+
+1. The number of distinct male authors have always been significantly higher than the number of distinct female authors across the years.
+
+2. The trend can be seen that the number of authors have significantly risen over the years
+
+3. The number of female authors barely cross the 2500 count mark
+
+#Q5
+
+Still including only the authors for whom a gender was predicted with a probability of 0.90 or greater, create a stacked bar plot showing the proportions of distinct male authors vs. distinct female authors published each year. (The stacked bars for each year will sum to one.) Comment on the visualization.
+
+```{r}
+query <- 
+"SELECT year, gender,
+COUNT(DISTINCT name) * 1.0 / SUM(COUNT(DISTINCT name)) 
+OVER (PARTITION BY year) AS proportion
+FROM authors
+JOIN general ON authors.k = general.k
+WHERE prob >= 0.9 AND gender IN ('M', 'F')
+GROUP BY year, gender"
+
+# Run the query and store the results in a data frame
+results <- dbGetQuery(dbConnection, query)
+
+# Create the stacked bar plot
+ggplot(results, aes(x=year, y=proportion, fill=gender)) +
+  geom_bar(position = "stack", stat="identity")
+
+```
+
+**Observations:**
+
+1. The proportion of male authors have always been greater than the number of female authors over the years
+
+2. If you sum up the proprtions for each year, the addition mounts to 1.
+
+3. For the initial few years, there are no female authors at all. Due to this, the proportion of male authors for initial years is 1.
+
+
+
+
+
+
+
+
+
+
