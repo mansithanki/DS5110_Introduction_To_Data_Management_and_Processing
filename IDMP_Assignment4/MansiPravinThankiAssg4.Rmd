@@ -1,0 +1,535 @@
+---
+title: "IDMP Assignment 4"
+author: "Mansi Pravin Thanki"
+date: '2023-03-14'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Install stringr R package
+install.packages("stringr", repos = "http://cran.us.r-project.org")   
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+```
+
+
+```{r}
+# Load required packages
+library("stringr") # Load stringr R package
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(modelr)
+```
+
+#Loading dataset
+```{r}
+load('/Users/mansipravinthanki/Downloads/TransPopData/37938-0001-Data.rda')
+```
+
+
+```{r}
+trans_data <- da37938.0001
+as.tibble(trans_data)
+```
+
+## Problem 1
+We would like to compare the weighted and unweighted distributions of trans people of different races and
+ethnicities. Visualize bar plots showing (1) the unweighted proportions of trans people of each race/ethnicity
+and (2) the weighted proportions of trans people of each race/ethnicity. What races are over- or underrepresented
+in the survey sample compared to the population?
+
+
+### Cleaning the data
+```{r}
+# cleaning the data to remove bracketed numbers
+trans_data$RACE <- substring(trans_data$RACE, 4)
+```
+
+### Calculate weighted and unweighted proportions of trans people of each race/ethnicity
+```{r}
+# Load required packages
+library(ggplot2)
+library(dplyr)
+
+# Subset the data frame to include WEIGHT and RACE
+transpop <- trans_data %>% select(WEIGHT, RACE)
+
+# Calculate unweighted proportions of trans people of each race/ethnicity
+unweighted_prop <- transpop %>% count(RACE) %>% 
+  mutate(prop = n / sum(n))
+
+# Calculate weighted proportions of trans people of each race/ethnicity
+weighted_prop <- transpop %>% 
+  group_by(RACE) %>% 
+  summarize(total_weight = sum(WEIGHT)) %>% 
+  mutate(prop = total_weight / sum(total_weight))
+
+# Combine unweighted and weighted proportions into a single data frame
+prop_df <- bind_rows(
+  data.frame(type = "Unweighted", RACE = unweighted_prop$RACE, prop = unweighted_prop$prop),
+  data.frame(type = "Weighted", RACE = weighted_prop$RACE, prop = weighted_prop$prop)
+)
+```
+
+### Visualization for Proportions of Trans People by Race/Ethnicity (Unweighted vs. Weighted)
+```{r}
+# Create bar plots
+ggplot(prop_df, aes(x = RACE, y = prop, fill = type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Race/Ethnicity", y = "Proportion of Trans People", fill = "Weighting") +
+  ggtitle("Proportions of Trans People by Race/Ethnicity (Unweighted vs. Weighted)")+ 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.2, hjust=1))+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 5))
+```
+#Comments and Observations:
+
+1. The **White Race and American Indian races** are over-represented in the survey sample compared to the population. This is because the unweighted proportion is higher than the weighted proportion. 
+
+2. The **Asian, Black/AA, Hispanic/Latino, Middle Eastern, Multirace, Native Hawaiian/Pacific Islander and Other** races are under represented in the survey sample compared to the population. This is because the weighted proportion is higher than the unweighted proportion.
+
+3. The above 2 points suggests the presence of sampling bias and unit non-response.
+
+4. The **White race and Multirace** have significantly higher proportion in both weighted and non-weighted proportions compared to other races in the population
+
+5.The **American Indian, Middle Eastern and Other** races have significantly low poroprtions in both weighted and non-weighted proportions compared to other races in the population
+
+
+
+### Summing weighted proportions to check if it adds 1 
+```{r}
+sum(weighted_prop$prop)
+```
+
+### Summing unweighted proportions to check if it adds 1
+```{r}
+sum(unweighted_prop$prop)
+```
+
+
+# Problem 2
+We would like to compare the weighted and unweighted distributions of trans people with different sexual
+orientations. Visualize bar plots showing (1) the unweighted proportions of trans people of each sexual
+orientation and (2) the weighted proportions of trans people of each sexual orientation. What sexual identities
+are over- or under-represented in the survey sample compared to the population?
+
+### Cleaning the data
+```{r}
+# cleaning the data to remove bracketed numbers
+trans_data$SEXUALID <- substring(trans_data$SEXUALID, 4)
+```
+
+### Calculating weighted and unweighted counts and proportion
+```{r}
+library(dplyr)
+
+# Calculate unweighted counts and proportions of trans people of each sexual orientation
+unweighted_counts <- trans_data %>% 
+  group_by(SEXUALID) %>% 
+  summarize(count = n())
+
+unweighted_props <- unweighted_counts %>% 
+  mutate(prop = count/sum(count))
+
+# Calculate weighted counts and proportions of trans people of each sexual orientation
+weighted_counts <- trans_data %>% 
+  group_by(SEXUALID)%>% 
+  summarize(count = sum(WEIGHT))
+
+weighted_props <- weighted_counts %>% 
+  mutate(prop = count/sum(count))
+```
+
+
+### Combine unweighted and weighted proportions into a single data frame
+```{r}
+# Combine unweighted and weighted proportions into a single data frame
+proportion_df <- bind_rows(
+  data.frame(type = "Unweighted", 
+             SEXUALID = unweighted_props$SEXUALID, prop = unweighted_props$prop),
+  data.frame(type = "Weighted", 
+             SEXUALID = weighted_props$SEXUALID, prop = weighted_props$prop)
+)
+```
+
+### Summing weighted proportions to check if it adds 1 
+```{r}
+sum(weighted_props$prop)
+```
+
+### Summing unweighted proportions to check if it adds 1
+```{r}
+sum(unweighted_props$prop)
+```
+
+I have included the NA category in the plot since sum of proportion is adding to 1
+```{r}
+library(ggplot2)
+
+# Bar plot
+ggplot(proportion_df, aes(x = SEXUALID, y = prop, fill = type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("Sexual Identities") +
+  ylab("Proportion") +
+  ggtitle("Unweighted proportions of trans people by sexual Identities")+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.2, hjust=1))+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 5))
+```
+
+# Comments and Observations:
+
+1. The sexual identities: **Straight/Heterosexual, Same-gender loving, Queer, Lesbian and Other** are over-represented in the survey sample compared to the population. This is because their unweighted proportion is higher than the weighted proportion
+
+2. The sexual identities: **Asexual Spectrum, Bisexual and Pansexual** are under-respresented in the survey sample compared to the population. This is because their weighted proportion is higher than the unweighted proportion
+
+3. The sexual identity: **Gay** is correctly represented in the survey sample compared to the population because its weighted and unweighted proportions are nearly same. This means there is no sampling bias or unit non-response for sexual identity Gay.
+
+4. **Straight/Heterosexual, Bisexual and Queer** sexual identities have significantly higher proportion than other sexual identites in the population
+
+5. **Asexual Spectrum and Same-gender loving** sexual identities have significantly lower proportion than other sexual identites in the population
+
+
+
+# Problem 3
+
+The survey includes several validated scales for measuring constructs related to identity, stress, and health.
+We would like to use these scales to build a model for predicting satisfaction with life among trans people.
+Focus your analysis on the following numeric variables described on pages 26-35 of the User Guide:
+
+• Satisfaction with life
+
+• Social well-being
+
+• Non-affirmation of gender identity
+
+• Non-disclosure of gender identity
+
+• Healthcare stereotype threat
+
+• Mental distress/disorder
+
+• Everyday discrimination
+
+Using the imputed versions of these variables, visualize life satisfaction versus the six candidate predictors,
+transforming variables as necessary, and describe their relationships.
+
+
+### Selecting the variables of interest
+```{r}
+# Select variables of interest
+TransPopdata <- trans_data %>%
+  select(STUDYID, LIFESAT_I, SOCIALWB_I, NONAFFIRM_I,
+         NONDISCLOSURE_I, HCTHREAT_I, KESSLER6_I,
+         EVERYDAY_I)
+```
+
+### removing NA values from dataframe
+```{r}
+TransPopdata <- na.omit(TransPopdata)
+as.tibble(TransPopdata)
+```
+
+
+```{r}
+ggplot(data = TransPopdata, aes(x = SOCIALWB_I, y = LIFESAT_I)) +
+  geom_point() +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  ylab("Life Satisfaction") +
+  xlab("Social well-being")+
+  ggtitle("Life Satisfaction versus Social well-being ")
+
+
+```
+
+
+
+**Comments on Visualization:**
+
+1. A strong **positive relationship** can be observed between social well-being and life satisfaction
+
+2. The positive slope indicates that an increase in social well-being correlates to an increase in life satisfaction.
+
+3. It is a directly positive linearly increasing relationship between well-being and life satisfaction
+
+```{r}
+ggplot(data = TransPopdata, aes(x = NONAFFIRM_I, y = LIFESAT_I)) +
+  geom_point() +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  ylab("Satisfaction with life") +
+  xlab("Non-affirmation of gender identity")+
+  ggtitle("Life Satisfaction versus Non-affirmation of gender identity")
+```
+
+
+**Comments on Visualization:**
+
+1. One can observe that there exists a **negative relationship** between non-affirmation of gender identity and life satisfaction 
+
+2. The negative slope indicates that increasing non-affirmation will lead to a decrease in life satisfaction.
+
+```{r}
+ggplot(data = TransPopdata, aes(x = NONDISCLOSURE_I, y = LIFESAT_I)) +
+  geom_point() +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  ylab("Satisfaction with life") +
+  xlab("Non-disclosure of gender identity")+
+  ggtitle("Life Satisfaction versus Non-disclosure of gender identity")
+```
+
+**Comments on Visualization:**
+
+1. One can observe that there exists a **strong negative relationship** between Non-disclosure of gender identity and life satisfaction 
+
+2. The negative slope indicates that increasing Non-disclosure of gender identity will lead to a decrease in life satisfaction.
+
+```{r}
+ggplot(data = TransPopdata, aes(x = HCTHREAT_I, y = LIFESAT_I)) +
+  geom_point() +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  ylab("Satisfaction with life") +
+  xlab("Healthcare stereotype threat")+
+  ggtitle("Life Satisfaction versus Healthcare stereotype threat")
+```
+
+**Comments on Visualization:**
+
+1. One can observe that there exists a **strong negative relationship** between Healthcare stereotype threat and life satisfaction 
+
+2. The negative slope indicates that increasing Healthcare stereotype threat will lead to a decrease in life satisfaction.
+
+```{r}
+ggplot(data = TransPopdata, aes(x = KESSLER6_I, y = LIFESAT_I)) +
+  geom_point() +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  ylab("Satisfaction with life") +
+  xlab("Mental distress")+
+  ggtitle("Life Satisfaction versus Mental distress")
+```
+
+**Comments on Visualization:**
+
+1. One can observe that there exists a **strong negative relationship** between Mental distress and life satisfaction 
+
+2. The negative slope indicates that increasing Mental distress will lead to a decrease in life satisfaction.
+
+```{r}
+ggplot(data = TransPopdata, aes(x = EVERYDAY_I, y = LIFESAT_I)) +
+  geom_point() +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  ylab("Satisfaction with life") +
+  xlab("Everyday discrimination")+
+  ggtitle("Life Satisfaction versus Everyday discrimination")
+```
+
+**Comments on Visualization:**
+
+1. One can observe that there exists a **negative relationship** between Everyday discrimination and life satisfaction 
+
+2. The negative slope indicates that increasing Everyday discrimination will lead to a decrease in life satisfaction.
+
+#**Problem 4**
+
+Build a linear regression model for life satisfaction using a single predictor, justifying your choice based only
+on the visualizations from Problem 3. Then use residual plots to perform model diagnostics.
+Comment on any outliers or violations of model assumptions you notice in the residual plots. If necessary, fix
+the issue(s), re-fit the model, and perform model diagnostics again.
+
+**Justification for choosing the predictor as Mental Distress/Disorder:**
+
+1. The plot for Mental Distress/Disorder indicated that there is a **strong negative relationship** between mental distress and life satisfaction
+
+2. That means that if mental distress increases, the life satisfaction will decrease.
+
+3. The plot also shows the the there is a strong correlation since there are a lot of points near the fitted line of the regression model. This is the reason I chose Mental Distress as predictor, even though a few other predictors too displayed strong negative relation.
+
+4. Hence, I decided to include it in the model. 
+
+**Fitting the model**
+```{r}
+model <- lm(LIFESAT_I ~ KESSLER6_I, data = TransPopdata)
+summary(model)
+```
+
+**Plotting the residuals**
+```{r}
+TransPopdata %>%
+  add_residuals(model, "resid") %>%
+  ggplot(aes(x=(KESSLER6_I))) +
+  geom_point(aes(y=resid), alpha=0.1) +
+  labs(x="Life Satisfaction with KESSLER6_I", y="Residuals") +
+  theme_minimal()
+
+```
+**QQ-Plot to check if the residuals are approximately normal**
+```{r}
+TransPopdata %>%
+  add_residuals(model, "resid") %>%
+  ggplot(aes(sample=resid)) +
+  geom_qq() +
+  theme_minimal()
+```
+**Comment on any outliers or violations of model assumptions you notice in the residual plots.**
+
+1. In the above QQ-Plot one can observe the presence of outliers 
+
+2. Having outliers can affect the prediction accuracy of the model
+
+3. So, the outliers need to be removed for having a better model
+
+4. Additionally, observing the plot for residuals, one can see that there is "simple random scatter" which indicates there are no violations of model assumptions. A systematic pattern when plotted with a variable used in the model indicates a violation of model assumptions.
+
+**Finding outliers**
+```{r}
+# The outlier corresponds to the row with index 11,215,269:
+TransPopdata_model2 <- TransPopdata
+outlier <- which(abs(model$residuals) > 2.5*sd(model$residuals))
+TransPopdata_model2[outlier, ]
+```
+
+**removing the outliers and refitting the model**
+```{r}
+# Remove the outlier
+TransPopdata_model2 <- TransPopdata_model2[-outlier, ]
+
+# Re-fit the model
+model2 <- lm(LIFESAT_I ~ KESSLER6_I, data = TransPopdata_model2)
+
+# Print the model summary
+summary(model2)
+
+```
+
+**Model Diagnostics**
+```{r}
+TransPopdata_model2 %>%
+  add_residuals(model2, "resid") %>%
+  ggplot(aes(x=(KESSLER6_I))) +
+  geom_point(aes(y=resid), alpha=0.35) +
+  labs(x="Mental distress/disorder", y="Residuals") +
+  theme_minimal()
+
+```
+
+```{r}
+TransPopdata_model2 %>%
+  add_residuals(model2, "resid") %>%
+  ggplot(aes(sample=resid)) +
+  geom_qq() +
+  theme_minimal()
+```
+**Additional comments:**
+
+1. One can observe that there are no outliers present now and the current model is better than the one with outliers
+
+
+# Problem 5
+Use residual plots to determine if any other candidate predictors should be added to your model from Problem
+2. If so, add up to one additional predictor to the model, and then perform model diagnostics on the new
+model.
+
+Candidate Predictor 1: Social well-being
+```{r}
+TransPopdata_model2 %>%
+  add_residuals(model2, "resid") %>%
+  ggplot(aes(x=SOCIALWB_I, y=resid)) +
+  geom_point(alpha=0.3) +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  labs(x="Social well-being", y="Residuals") +
+  ggtitle("Residuals against Social well-being") +
+  theme_minimal()
+
+```
+Candidate Predictor 2: Non-affirmation of gender identity
+```{r}
+TransPopdata_model2 %>%
+  add_residuals(model2, "resid") %>%
+  ggplot(aes(x=NONAFFIRM_I, y=resid)) +
+  geom_point(alpha=0.3) +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  labs(x="Non-affirmation of gender identity", y="Residuals") +
+  ggtitle("Residuals against Non-affirmation of gender identity") +
+  theme_minimal()
+
+```
+Candidate Predictor 3: Non-disclosure of gender identity
+```{r}
+TransPopdata_model2 %>%
+  add_residuals(model2, "resid") %>%
+  ggplot(aes(x=NONDISCLOSURE_I, y=resid)) +
+  geom_point(alpha=0.3) +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  labs(x="Non-disclosure of gender identity", y="Residuals") +
+  ggtitle("Residuals against Non-disclosure of gender identity") +
+  theme_minimal()
+
+```
+
+Candidate Predictor 4: Healthcare stereotype threat
+```{r}
+TransPopdata_model2 %>%
+  add_residuals(model2, "resid") %>%
+  ggplot(aes(x=HCTHREAT_I, y=resid)) +
+  geom_point(alpha=0.3) +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  labs(x="Healthcare stereotype threat", y="Residuals") +
+  ggtitle("Residuals against Healthcare stereotype threat") +
+  theme_minimal()
+
+```
+
+```{r}
+TransPopdata_model2 %>%
+  add_residuals(model2, "resid") %>%
+  ggplot(aes(x=EVERYDAY_I, y=resid)) +
+  geom_point(alpha=0.3) +
+  stat_smooth(method=lm, color="red", se=FALSE)+
+  geom_smooth() +
+  labs(x="Everyday discrimination", y="Residuals") +
+  ggtitle("Residuals against Everyday discrimination") +
+  theme_minimal()
+
+```
+**Fitting the model**
+
+Choosing the Predictor Social well-being as the additional predictor to the model
+```{r}
+model3 <- lm(LIFESAT_I ~ KESSLER6_I + SOCIALWB_I, data = TransPopdata_model2)
+summary(model3)
+```
+
+**Model Diagnostics**
+
+```{r}
+TransPopdata_model2 %>%
+  add_residuals(model3, "resid") %>%
+  ggplot(aes(x=(KESSLER6_I + SOCIALWB_I))) +
+  geom_point(aes(y=resid), alpha=0.35) +
+  labs(x="Mental distress/disorder and Social well-being", y="Residuals") +
+  ggtitle("Residuals vs Mental distress/disorder and Social well-being")+
+  theme_minimal()
+
+```
+
+**QQ-Plot**
+```{r}
+TransPopdata_model2 %>%
+  add_residuals(model3, "resid") %>%
+  ggplot(aes(sample=resid)) +
+  geom_qq() +
+  ggtitle("QQ-PLot")
+  theme_minimal()
+```
+
