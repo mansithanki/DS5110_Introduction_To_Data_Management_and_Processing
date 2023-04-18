@@ -1,0 +1,5 @@
+Download the data from the zipped 2017-2018 data available at https://www2.ed.gov/about/offices/list/ocr/docs/crdc-2017-
+18.html. The Public Use Data File User’s Manual and a spreadsheet describing the file structure are included
+in the zipped files, or can be downloaded at the same location. Use these as a reference to help you understand
+the dataset. The CRDC data is supplemented by statistical data from EDFacts (not included). We will use
+only the CRDC data. 
