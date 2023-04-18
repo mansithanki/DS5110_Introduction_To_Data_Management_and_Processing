@@ -6,9 +6,14 @@ Installation and Dependencies
 To use these assignments, you will need to have R installed on your computer, as well as the following packages:
 
 ggplot2
+
 dplyr
+
 tidyr
+
 lubridate
+
+
 You can install these packages using the following command:
 
 install.packages(c("ggplot2", "dplyr", "tidyr", "lubridate"))
