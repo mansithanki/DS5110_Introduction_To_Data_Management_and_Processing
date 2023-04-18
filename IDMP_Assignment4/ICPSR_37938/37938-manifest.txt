@@ -1,0 +1,144 @@
+File Manifest for ICPSR 37938
+
+Meyer, Ilan H. TransPop, United States, 2016-2018. ICPSR37938-v1. Ann
+Arbor, MI: Inter-university Consortium for Political and Social Research
+[distributor], 2021-06-23. http://doi.org/10.3886/ICPSR37938.v1
+
+
+Study-level Documentation
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    37938-descriptioncitation.pdf       -       -         -       2021-09-23  -
+
+    37938-related_literature.txt        -       -         -       daily       -
+
+    37938-manifest.txt                  -       -         -       daily       -
+
+
+DS0001 TransPop Data for Public-Use
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    37938-0001-Codebook-ICPSR.pdf       -       -         -       2021-06-23  194e3551d2a29ed76eee51bdcd17767e
+
+    37938-0001-Codebook-TransPop_MULTI.pdf -       -         -       2021-06-23  3af0effbfa337d1174e0086aea81b246
+
+    37938-0001-Data.dta                 -       274       566     2021-06-23  c7cdb89356b67509bb81005a09db4f84
+
+    37938-0001-Data.rda                 -       274       566     2021-06-23  a6ed7b35155960eb182ec300ab5b6b8f
+
+    37938-0001-Data.sav                 -       274       566     2021-06-23  ce51418af9c68cad4e89f58779fe589d
+
+    37938-0001-Data.stc                 -       274       566     2021-06-23  56c1388c5ae8ac7235303f392a919d7d
+
+    37938-0001-Data.tsv                 -       274       566     2021-06-23  2a0fa91824378f4a4381e55535bcc50d
+
+    37938-0001-Data.txt                 1979    274       566     2021-06-23  b98e582159c2268869eeeeba7abdcc67
+
+    37938-0001-Qualitative_data.csv     -       -         -       2021-06-23  3f0328ee9fd84d106410406bdd26ae1a
+
+    37938-0001-Questionnaire-TransPop1_MULTI.pdf -       -         -       2021-06-23  e87a2586e7c92e988bed1b599af224b4
+
+    37938-0001-Questionnaire-TransPop2_MULTI.pdf -       -         -       2021-06-23  89be63b8aa1ac8686f55b96c64747b28
+
+    37938-0001-Setup.dct                -       -         -       2021-06-23  c5e96a5e31c623c6363e823b4cc82e50
+
+    37938-0001-Setup.do                 -       -         -       2021-06-23  7d15916cb413e696a0b278ef58d6bb94
+
+    37938-0001-Setup.sas                -       -         -       2021-06-23  ea3d12bb2021deedf6fe8c1186071d49
+
+    37938-0001-Setup.sps                -       -         -       2021-06-23  9fef75e711a85c6d56006c4710a27f77
+
+    37938-0001-Supplemental_syntax.do   -       -         -       2021-06-23  c7e03d9a0325b0fbd899a5b827370f91
+
+    37938-0001-Supplemental_syntax.sas  -       -         -       2021-06-23  6d9bf19ce801f8b82065960b386470d0
+
+
+DS0003 Cisgender Data for Public-Use
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    37938-0003-Codebook-Cisgender_MULTI.pdf -       -         -       2021-06-23  55290e08ebe8103276774a168bd625e4
+
+    37938-0003-Codebook-ICPSR.pdf       -       -         -       2021-06-23  ab06519567a7f41fdc0ef7ab85be8638
+
+    37938-0003-Data.dta                 -       1,162     503     2021-06-23  440b00a295e4459a91cf36614bf46b4e
+
+    37938-0003-Data.rda                 -       1,162     503     2021-06-23  e932353f6db19ff9aa9e160df9d94b57
+
+    37938-0003-Data.sav                 -       1,162     503     2021-06-23  ae0b4ef2d41e2b9b8fe49f157f5acbb3
+
+    37938-0003-Data.stc                 -       1,162     503     2021-06-23  5c527e69a1ab3eb13d8a5bd7de399de8
+
+    37938-0003-Data.tsv                 -       1,162     503     2021-06-23  07f79cfcca84f89ef5cb31cec6c4eabc
+
+    37938-0003-Data.txt                 1515    1,162     503     2021-06-23  c43d2129871e06b884ebb9805f13d361
+
+    37938-0003-Qualitative_data.csv     -       -         -       2021-06-23  e64f17724b793a0ceb3dfb0c525afa32
+
+    37938-0003-Questionnaire-Cisgender_MULTI.pdf -       -         -       2021-06-23  f7f91e936fc5a31c0a21e46d75e8c740
+
+    37938-0003-Setup.dct                -       -         -       2021-06-23  6d0b54b2721d4adf2ac46fea0e9cdec6
+
+    37938-0003-Setup.do                 -       -         -       2021-06-23  43da66c042005f7ea53563a50ca2c32c
+
+    37938-0003-Setup.sas                -       -         -       2021-06-23  89ea036c3d6ecbef2f176f91c68c40a0
+
+    37938-0003-Setup.sps                -       -         -       2021-06-23  c84df8cc2b4536f0f99829993a9b754b
+
+    37938-0003-Supplemental_syntax.do   -       -         -       2021-06-23  d42da2fc506230c28e821f283b145268
+
+    37938-0003-Supplemental_syntax.sas  -       -         -       2021-06-23  11e67b3efb8e2acc5d99ed020bcf7f05
+
+
+DS0005 Combined Data for Public-Use
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    37938-0005-Codebook-Cisgender_MULTI.pdf -       -         -       2021-06-23  55290e08ebe8103276774a168bd625e4
+
+    37938-0005-Codebook-ICPSR.pdf       -       -         -       2021-06-23  c1988f453df62277e4d60dc368aba660
+
+    37938-0005-Codebook-TransPop_MULTI.pdf -       -         -       2021-06-23  3af0effbfa337d1174e0086aea81b246
+
+    37938-0005-Data.dta                 -       1,436     612     2021-06-23  052c750a86c22f05f1d743319d7463dc
+
+    37938-0005-Data.rda                 -       1,436     612     2021-06-23  221c7b01617a61e55f9f4c7fc928434a
+
+    37938-0005-Data.sav                 -       1,436     612     2021-06-23  2f3ad838f1331cdc445b18568d5a74d5
+
+    37938-0005-Data.stc                 -       1,436     612     2021-06-23  babee1e5f8a5a5bef4b9354cc22116e1
+
+    37938-0005-Data.tsv                 -       1,436     612     2021-06-23  0c93269fcd691dc7697f772ad8bc25ed
+
+    37938-0005-Data.txt                 2192    1,436     612     2021-06-23  094199ae7247803006d2bcd302045cee
+
+    37938-0005-Documentation-MULTI.pdf  -       -         -       2021-06-23  229981f42b29343cd1d3a9d563e1ecb1
+
+    37938-0005-Qualitative_data.csv     -       -         -       2021-06-23  b819f514b1b2aba90a755a5e154cd5a8
+
+    37938-0005-Questionnaire-Cisgender_MULTI.pdf -       -         -       2021-06-23  f7f91e936fc5a31c0a21e46d75e8c740
+
+    37938-0005-Questionnaire-TransPop1_MULTI.pdf -       -         -       2021-06-23  e87a2586e7c92e988bed1b599af224b4
+
+    37938-0005-Questionnaire-TransPop2_MULTI.pdf -       -         -       2021-06-23  89be63b8aa1ac8686f55b96c64747b28
+
+    37938-0005-Setup.dct                -       -         -       2021-06-23  3997bc8c4584e896250e877c87580b0c
+
+    37938-0005-Setup.do                 -       -         -       2021-06-23  4b67833a0fba2efa24881b71228e1764
+
+    37938-0005-Setup.sas                -       -         -       2021-06-23  dfbecfd5629e2d72226e585e11c58e86
+
+    37938-0005-Setup.sps                -       -         -       2021-06-23  f429df93a0b8015d015cb7fd754653c1
+
+    37938-0005-Supplemental_syntax.do   -       -         -       2021-06-23  87fd89f65513a55c59efd97452304913
+
+    37938-0005-Supplemental_syntax.sas  -       -         -       2021-06-23  a76ebd4b9bc0bcce64201a79c61abde8
+
+    37938-0005-User_guide.pdf           -       -         -       2021-06-23  18f0402018ef9adf7a4f35b73560fc38
+
