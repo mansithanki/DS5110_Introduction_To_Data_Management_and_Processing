@@ -1,0 +1,356 @@
+---
+title: "Assignment 2 - Tidying Data"
+output: pdf_document
+date: '2023-02-07'
+author: "Mansi Pravin Thanki"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+```{r}
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+install.packages("lubridate", repos = "http://cran.us.r-project.org")
+
+```
+
+```{r}
+
+library(lubridate)
+library(tidyverse)
+library(readr)
+library(dplyr)
+```
+
+**About Netflix dataset:**
+
+**Description:**
+
+- This dataset contains information about Netflix (a popular entertainment streaming service) TV Shows and Movies upto the beginning of Year 2021.
+
+- The dataset contains 7787 observations of 12 variables
+
+- Columns present in the dataset are as follows:
+
+**Show_ID** - unique id of the netflix show
+
+**type** - Netflix show can be 2 types -> Movie or TV show
+
+**title** - Name or title of the Netflix show
+
+**director** - Name of the director of the show
+
+**Cast** - acting cast of the show
+
+**country** - origin country of the Show
+
+**date_added** - date on which the show was released on Netflix
+
+**release year** - release year of the show
+
+**rating** - rating of the show
+
+**duration** - Length of the movie
+
+**genre** - genre of the movie
+
+**Description** - Summary of the movie
+
+- Very limited movies from the year 2021 are present in the dataset
+
+- Citing source of dataset: https://www.kaggle.com/datasets/senapatirajesh/netflix-tv-shows-and-movies?select=NetFlix.csv
+
+
+
+# Loading the dataset
+```{r}
+#  Citing source of dataset: https://www.kaggle.com/datasets/senapatirajesh/netflix-tv-shows-and-movies?select=NetFlix.csv
+netflix_dataset <- read_csv("/Users/mansipravinthanki/Downloads/NetFlix.csv", na = c(""))
+tibble(netflix_dataset)
+```
+
+
+# Tidying the dataset / Preprocessing steps
+
+- **Resolved issues with mixed date format in date_added column**
+
+- **Filtered out and retained the dates in date_added column that had date_added before current date**
+
+- **Replaced Duration with 1-10 mins duration with mean value of the duration**
+
+- **Replaced NA values in rating column with 'Unknown' rating**
+
+- **Created new column to get the year in which the show was aired from date_added column**
+
+```{r}
+# as you can see, certain dates are in character format "14-Aug-20" whereas a 
+# very few dates are in character  format "November 1, 2019"
+
+# we can tidy this by using lubridate package and mutating the column date_added
+netflix_dataset <- netflix_dataset%>%mutate(netflix_dataset, date_added = lubridate::ymd(date_added))
+
+# one can see that some years in date_added belong to 2031, 2027, 2025 etc. 
+# The release dates for this movies is in the past years.
+# So this does not make sense that date_added (date that the movie was added on Netflix)
+# will ever have a date in future from today
+# So we use filter and retain only the rows where date_added has a date before current date
+netflix_dataset <- filter(netflix_dataset, netflix_dataset$date_added < Sys.Date())
+
+
+# movies or TV shows cannot have 1-10 mins of duration. It seems like a bad data to me
+# hence I have replaced those values with the mean of duration
+netflix_dataset$duration[netflix_dataset$duration<10] <- as.integer(mean(netflix_dataset$duration))
+
+# NA values replaced with 'Unknown' in rating column
+netflix_dataset$rating[is.na(netflix_dataset$rating)] <- 'Unknown'
+
+# using str_sub, extracted the year and created a new column in dataframe -> aired_on_netflix_year
+netflix_dataset$aired_on_netflix_year <- as.double(str_sub(netflix_dataset$date_added, start = 0, end = 4))
+
+# printing dataframe. Check date_added column to see the transformation
+tibble(netflix_dataset)
+```
+# Problem 2
+
+**Visualization No: 1**
+
+# Distribution of Count of Netflix shows its by Type and Release Year
+```{r}
+library(ggplot2)
+
+ggplot(netflix_dataset[which(netflix_dataset$release_year>2005),], aes( x= release_year, fill = type)) + 
+  geom_bar() +
+  facet_wrap(~type, ncol=1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Distribution of Count of Netflix shows its by Type and Release Year",
+       x = "Release Year",
+       y = "Count",
+       fill = "Netflix Show Type")
+```
+
+
+**Observations and Conclusions:**
+
+- I have made the observations for the years 2005 onwards
+
+- There are two types of Netflix shows -> 1. Movie 2. TV Show
+
+- The above bar plot visualizes the count of the two types of shows across the years 2005-2021
+
+- One can visualize that for TV Shows, the count increases over the years. 
+
+- For Movies, one can see that the count of movies is rising until the year 2017. After 2017, it sees a decline in the count.
+
+- The dataset contains data about Netflix shows until beginning of 2021. And hence, it does not contain many movies of the year 2021, and hence the count for year 2021 is low for both Movies and TV Shows
+
+- The highest count of Movies was in year 2017 and for TV Shows (~600 count), the highest count was in 2020 (~350 count)
+
+- The count of Movies has always been higher than count of TV Shows across all the years except 2020.
+
+
+**Visualization No: 2**
+
+# Distribution of Netflix shows by Rating and Show Count for Different Show Types
+```{r}
+library(ggplot2)
+
+ggplot(netflix_dataset, aes(x = rating, fill=rating)) +
+  geom_bar() +
+  facet_wrap(~ type, ncol = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Distribution of Netflix shows by Rating and Show Count for Different Show Types",
+       x = "Rating",
+       y = "Count of Shows")
+
+```
+**Observations and Conclusions:**
+
+- Maximum count of shows (both Movies and TV Shows) in the dataset belong to **TV-MA rating**
+- The count of shows of each eating is higher for Movies than the TV Shows
+- More TV-Y7 TV shows are on Netflix than TV-YZ movies
+
+
+**Visualization No: 3**
+
+# Relationship between Duration of Show and Year when Show was aired on Netflix
+
+```{r}
+library(ggplot2)
+
+ggplot(netflix_dataset[which(netflix_dataset$release_year>2005),], aes(x=as.factor(aired_on_netflix_year), y=duration)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title="Relationship between Duration of Show and Year when Show was aired on Netflix",
+        x="Year when Show was aired on Netflix", 
+        y="Duration of Show") 
+```
+**Observations and Conclusions:**
+
+- It can be observed that there is no direct relationship between the Years and the Duration of the shows.
+- The average duration of shows across all years range between 100-75
+- Year 2019 has the highest average duration
+
+
+**# PART B:**
+
+```{r}
+apr_dataset <- read_tsv("/Users/mansipravinthanki/Downloads/NCAA-D1-APR-2003-14/DS0001/26801-0001-Data.tsv", na = c(""))
+```
+
+
+**#Q3:**
+
+Create a tidy data frame that includes columns for:
+• School ID
+• School name
+• Sport code
+• Sport name
+• Year
+• APR
+All other columns can be discarded.
+Use your tidied dataset to visualize the distributions of APRs over time. How does the distribution of APRs
+change year-to-year from 2004 to 2014?
+
+**Solution:**
+
+
+```{r}
+# first  get all the columns that start with "APR_RATE_"
+untidy_apr_columns_df <- apr_dataset %>% select(all_of(starts_with("APR_RATE_")))
+
+# get the column names from the untidy_apr_columns_df dataframe
+apr_columnNames <- sort(colnames(untidy_apr_columns_df))
+
+# as seen, the observation of Years are scattered across the columns 
+#hence one can use pivot_longer to address this.
+apr_dataset <-pivot_longer(apr_dataset, cols=apr_columnNames, names_to = "YEAR",
+                           values_to = "APR")
+
+# using str_sub to extract year from "APR_RATE_XXXX_1000"
+apr_dataset$Year <- str_sub(apr_dataset$YEAR, start = -9, end = -6)
+
+# filtering values to exclude values that are negative
+apr_dataset <- filter(apr_dataset,APR>0)
+
+# selecting the columns out of tidied dataset
+apr_dataset <- select(apr_dataset, SCL_UNITID, SCL_NAME, SPORT_CODE, SPORT_NAME, 
+                      Year, APR)
+
+# printing the dataframe
+tibble(apr_dataset)
+
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(apr_dataset, aes(x = Year, y = APR)) + 
+  geom_boxplot() +
+  labs(title = "Distribution of APRs by Year",
+       x = "Year",
+       y = "APR")
+```
+- As seen in the boxplot above, the APRs are consistently increasing over the years
+
+- There is a direct positively increasing relationship between APRs and the Years
+
+- This indicates that the academic progress of the teams have increased over the span of years from 2004-2014
+
+- The highest average APR is seen in 2014, and the lowest average is seen in 2004.
+
+
+
+**#Q4:**
+
+We would like to compare APRs between men’s and women’s sports. Transform your tidied dataset to remove
+mixed sports, and create a column indicating the gender division of each sport. (You may assume sport codes
+1-18 are men’s, and 19-37 are women’s.)
+Visualize the distributions of APRs over time again, but broken down by gender division. How do the average
+APRs compare between men’s and women’s sports? Does this relationship hold true across each year from
+2004 to 2014?
+
+
+**Solution:**
+
+```{r}
+# creating a new dataframe from existing dataframe to work on
+apr_dataset2 <- apr_dataset
+
+# using ifelse to fill the new column gender based on the Sports Code Men 1-18 and Women 19-37
+apr_dataset2 <- mutate(apr_dataset2, Gender = ifelse(SPORT_CODE <= 18, "Men", "Women"))
+
+# printing dataframe
+tibble(apr_dataset2)
+```
+```{r}
+library(ggplot2)
+
+ggplot(apr_dataset2, aes(x = Year, y = APR, fill = Gender)) + 
+  geom_boxplot() +
+  # facet_wrap(~ Gender) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Distribution of APRs by Year and Gender",
+       x = "Year",
+       y = "APR")
+```
+
+- It can be observed from the above plots that Women sports have higher average APRs than Men's sports
+- Also, it can be observed that across the span of 2004-2014, the Women sports average APR has always been greater than Men's sports average APR. So the above relationship holds true for the years 2004-2014.
+- This comparison indicates that women's sports progress academically better than men's sports. 
+- One can see that women sports average APR has been consistenly increasing over the years. However, there is some inconsistent growth in the men's sports average APR over the years.
+
+
+#Q5
+
+We would like to further visualize APR by both gender and specific sports. Process the the sport names to
+remove the “Men’s” and “Women’s” prefixes so that we can compare men’s and women’s teams within each
+sport. Then visualize the distribution of APR for both men’s and women’s teams for each sport. Are there
+sports where men’s and women’s teams have similar APRs?
+
+**Solution:**
+
+```{r}
+library(stringr)
+
+# creating a new dataframe from existing dataframe to work on
+apr_dataset3 <- apr_dataset2
+
+# used str_remove() to remove to the “Men’s” and “Women’s” prefixes
+apr_dataset3 <- mutate(apr_dataset3, 
+                       SPORT_NAME = str_remove(SPORT_NAME, "^Men's |^Women's "))
+
+# printing dataframe
+tibble(apr_dataset3)
+```
+
+```{r}
+ggplot(apr_dataset3, aes(x = SPORT_NAME, y = APR, fill = Gender)) + 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Distribution of APRs by Sport and Gender",
+       x = "Sport",
+       y = "APR",
+       fill = "Gender")
+```
+- As seen in the above visualization, men’s and women’s teams have similar APRs in:
+
+1. Volleyball
+
+2. Fencing
+
+3. Golf
+
+4. Gymnastics
+
+5. Skiing
+
+6. Tennis
+
+7. Cross Country
+
+- The average APRs of the above sports for both men and women are very similar.
+
+- For rest of the sports, there is quite a distinct difference between the APRs of both genders
+
+- As viewed in the visualization of Q4, the Women APRs are greater than Men APR for maximum sports.
